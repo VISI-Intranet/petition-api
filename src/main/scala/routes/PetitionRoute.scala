@@ -1,15 +1,23 @@
 package routes
 
+import akka.actor.{ActorLogging, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.*
 import domain.*
+import amqp.*
+import mainFile.Main
 import repositories.{JsonSupport, PetitionRepository, UserRepository}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.util.{Failure, Success}
 
-class PetitionRoute(implicit val petitionRepo:PetitionRepository, val userRepo:UserRepository,val ex:ExecutionContext)
+class PetitionRoute(implicit val petitionRepo:PetitionRepository, 
+                    val userRepo:UserRepository,
+                    val system:ActorSystem)
   extends JsonSupport {
+
+  implicit val executionContext: ExecutionContext = system.dispatcher
+  val amqpActor = system.actorSelection("user/amqpActor")
   
   // field параметрінің дұрыстығын тексеру үшін
   private val fields:List[String] = List(
@@ -50,22 +58,33 @@ class PetitionRoute(implicit val petitionRepo:PetitionRepository, val userRepo:U
         entity(as[PetitionCreateRequest]) {
           newPetition => {
             val createdPetition = petitionRepo.fromCreateRequest(newPetition)
-            val future = validateCustom(
-              userRepo.doesUserExist(createdPetition.autorId)
-                -> "Нет пользователья под указанной ID",
-              userRepo.checkUserStatus(createdPetition.autorId)
-                -> "Этот пользователь не можеть создавать петиций!"
-            )
-            onComplete(future){
-              case Success(true,_) =>
+//            val future = validateCustom(
+//              userRepo.doesUserExist(createdPetition.autorId)
+//                -> "Нет пользователья под указанной ID",
+//              userRepo.checkUserStatus(createdPetition.autorId)
+//                -> "Этот пользователь не можеть создавать петиций!"
+//            )
+//            onComplete(future){
+//              case Success(true,_) =>
                 onComplete(petitionRepo.create(createdPetition)) {
-                  case Success(newPetitionId) =>
+                  case Success(newPetitionId) => {
+                    val json=
+                      s"""{
+                        |"jsonAction":"event.create_petitionPOST",
+                        |"body":{
+                        |   "name":"${createdPetition.name}",
+                        |   "description":"${createdPetition.description}",
+                        |   "goalOfVotes":"${createdPetition.goalOfVotes}"
+                        | }
+                        |}""".stripMargin
+                    Main.amqpActor ! RabbitMQ.Tell("univer.news_api.create_petitionPOST",json)
                     complete(StatusCodes.Created, s"ID новой петиций ${newPetitionId.get.toString}")
+                  }
                   case Failure(_) => complete(StatusCodes.InternalServerError, "Не удалось создать петицию!")
                 }
-              case Success(false, message) => complete(StatusCodes.BadRequest,message)
-              case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
-            }
+//              case Success(false, message) => complete(StatusCodes.BadRequest,message)
+//              case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
+//            }
           }
         }
       }

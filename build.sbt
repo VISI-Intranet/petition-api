@@ -5,8 +5,8 @@ scalaVersion := "3.3.0"
 libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick" % "3.5.0-M4",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.5.0-M4",
-  "mysql" % "mysql-connector-java" % "8.0.33"
-
+  "mysql" % "mysql-connector-java" % "8.0.33",
+  "com.rabbitmq" % "amqp-client" % "5.16.0"
 )
 
 libraryDependencies += "com.typesafe.akka" %% "akka-http-spray-json" % "10.5.0"
