@@ -1,14 +1,20 @@
 package routes
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.*
 import domain.*
 import repositories.{JsonSupport, UserRepository}
 
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-class UserRoute(implicit userRepo:UserRepository)
+class UserRoute(implicit userRepo:UserRepository,
+                val system:ActorSystem)
           extends JsonSupport {
+
+  implicit val executionContext: ExecutionContext = system.dispatcher
+  val amqpActor = system.actorSelection("user/amqpActor")
 
   // field параметрінің дұрыстығын тексеру үшін
   private val fields:List[String] = List(

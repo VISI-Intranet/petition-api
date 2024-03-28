@@ -11,7 +11,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  import spray.json.*
+  import spray.json._
   implicit val userFormat: RootJsonFormat[User] = jsonFormat5(User)
   implicit val userListFormat: RootJsonFormat[List[User]] = listFormat(userFormat)
   implicit val userUpdateRequestFormat: RootJsonFormat[UserUpdateRequest] = jsonFormat5(UserUpdateRequest)
