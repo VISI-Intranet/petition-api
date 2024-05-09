@@ -1,36 +1,55 @@
 package amqp
 
 import akka.actor.{Actor, ActorLogging, Props}
-import com.rabbitmq.client.{AMQP, Channel}
+import com.rabbitmq.client.*
 
 
-class SenderActor(channel: Channel, exchangeName:String) extends Actor with ActorLogging {
+
+class SenderActor(channel: Channel, exchangeName:String,serviceName:String) extends Actor with ActorLogging {
 
   override def receive: Receive = {
-    case RabbitMQ.Tell(routingKey, message) =>
+    case RabbitMQ.Tell(routingKey, body) =>
       // Преобразуем сообщение в массив байтов
-      val messageBytes = message.getBytes("UTF-8")
+      val messageBytes = body.getBytes("UTF-8")
+
+      val properties = new AMQP.BasicProperties.Builder()
+        .contentType("Event")
+        .build()
 
       // Отправляем сообщение в очередь
-      channel.basicPublish(exchangeName, routingKey, new AMQP.BasicProperties(), messageBytes)
-      log.info(s"Отправлено сообщение по ключу: $routingKey. Тело: $message")
+      channel.basicPublish(exchangeName, routingKey, properties, messageBytes)
+      log.info(
+        s"""
+           |Отправлено сообщение:
+           |    service name: $serviceName
+           |    routingKey : $routingKey
+           |    contentType : Event
+           |    body : $body""".stripMargin)
 
 
-    case RabbitMQ.Answer(routingKey,correlationId,message) =>
+    case RabbitMQ.Answer(routingKey,correlationId,body:String) =>
       // Преобразуем сообщение в массив байтов
-      val messageBytes = message.getBytes("UTF-8")
+      val messageBytes = body.getBytes("UTF-8")
 
       val properties = new AMQP.BasicProperties.Builder()
         .correlationId(correlationId)
+        .contentType("Response")
         .build()
       
       // Отправляем сообщение в очередь
       channel.basicPublish(exchangeName, routingKey,properties, messageBytes)
-      log.info(s"Отправлено ответ по ключу: $routingKey. Тело: $message")
+      log.info(
+        s"""
+           |Отправлено ответ на запрос:
+           |    service name: $serviceName
+           |    correlationId : $correlationId
+           |    routingKey : $routingKey
+           |    contentType : Response
+           |    body : $body""".stripMargin)
 
   }
 }
 
 object SenderActor {
-  def props(channel: Channel, exchangeName: String): Props = Props(new SenderActor(channel,exchangeName))
+  def props(channel: Channel, exchangeName: String,serviceName:String): Props = Props(new SenderActor(channel,exchangeName,serviceName))
 }

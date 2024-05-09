@@ -21,9 +21,6 @@ class Comments(tag: Tag) extends Table[Comment](tag, "comment") {
   def text = column[String]("text")
   def dateOfCreate = column[Date]("date_of_create",O.Default(Date.valueOf(LocalDate.now())))
 
-  def author = foreignKey("fk_author", authorId, TableQuery[UserTable])(_.id)
-  def petition = foreignKey("fk_petition", petitionId, TableQuery[Petitions])(_.id)
-
   def * = (id, authorId, petitionId, text, dateOfCreate).mapTo[Comment]
 }
 

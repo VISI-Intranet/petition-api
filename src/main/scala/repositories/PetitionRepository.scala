@@ -5,6 +5,7 @@ import domain.PetitionStatus.{Active, Passive}
 import slick.jdbc.{GetResult, JdbcProfile}
 import slick.lifted.TableQuery
 import domain.{Petition, PetitionCreateRequest, PetitionStatus, PetitionUpdateRequest, PetitionVoting, Petitions}
+import slick.jdbc
 
 import java.sql.Date
 import java.time.LocalDate
@@ -12,7 +13,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.*
 import scala.util.{Failure, Success}
 
-class PetitionRepository(implicit db: JdbcProfile#Backend#Database ,
+class PetitionRepository(implicit db: jdbc.MySQLProfile.backend.JdbcDatabaseDef ,
                          val petitionVotingRepo: PetitionVotingRepository,
                          val ec: ExecutionContext) {
 

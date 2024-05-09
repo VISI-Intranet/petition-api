@@ -28,9 +28,7 @@ class Petitions(tag: Tag) extends Table[Petition](tag, "petition") {
   def goalOfVotes = column[Int]("goal_of_votes")
   def votes = column[Int]("votes", O.Default(0))
   def status = column[PetitionStatus]("status")
-
-  def user = foreignKey("fk_user", autorId, TableQuery[UserTable])(_.id)
-
+  
   def * = (id, autorId, name, description, dateCreate, goalOfVotes, votes, status).mapTo[Petition]
 }
 

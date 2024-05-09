@@ -1,7 +1,7 @@
 package amqp
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import com.rabbitmq.client.{AMQP, Channel, DefaultConsumer, Envelope}
+import com.rabbitmq.client.*
 
 import scala.collection.mutable
 
@@ -32,14 +32,18 @@ class AskActor(channel: Channel, exchangeName:String, serviceName: String) exten
 
       val actorRef: Option[ActorRef] = sendors.remove(correlationId)
       if (sendors.isEmpty) {
-        log.info(s"Слушатель ответа актора ${self.path.name} останавливает слушание потому что нет активных запросов!")
         channel.basicCancel(consumerTag)
       }
       actorRef match {
-        case Some(actor: ActorRef) =>
+        case Some(actor: ActorRef) => {
+          log.info(
+            s"""
+               |Пришел ответ на запрос с correlationId : $correlationId:
+               |    body : $response""".stripMargin)
           actor ! response
+        }
         case None =>
-          log.info(s"При возвращений ответа с идентификатором $correlationId не найдено отправителья")
+          log.warning(s"При возвращений ответа с идентификатором $correlationId не найдено отправителья")
       }
     }
   }
@@ -47,26 +51,34 @@ class AskActor(channel: Channel, exchangeName:String, serviceName: String) exten
   def receive: Receive = {
     case RabbitMQ.Ask(routingKey,content) =>
       // Создание уникального идентификатора для запроса
-      val requestId = java.util.UUID.randomUUID().toString
+      val correlationId = java.util.UUID.randomUUID().toString
 
       // Настройки отправляемого сообщения
       val properties = new AMQP.BasicProperties.Builder()
         // В какой очередь нужно вернуться
         .replyTo(responseRoutingKey)
         // Идентификатор сообщения
-        .correlationId(requestId)
+        .correlationId(correlationId)
+        .contentType("Request")
         .build()
 
       if(sendors.isEmpty) {
-        log.info(s"Слушатель ответа актора ${self.path.name} начинает слушать!")
         channel.basicConsume(responseQueueName,true,consumer)
       }
 
       // Сохраняем ключ значение как айди и его отправитель,
       // чтобы вернуть правильное сообщение к отправителью
-      sendors += (requestId -> sender())
+      sendors += (correlationId -> sender())
       val body = content.getBytes("UTF-8")
-      log.info(s"Был отправлен запрос с ожиданием ответа по ключу $routingKey с идентификатором $requestId. Тело запроса: $body")
+      
+      log.info(
+        s"""
+           |Был отправлен запрос c ожидание ответа:
+           |    service name: $serviceName
+           |    routingKey : $routingKey
+           |    contentType : Request
+           |    correlationId: $correlationId
+           |    body : $content""".stripMargin)
       channel.basicPublish(exchangeName, routingKey, properties, body)
   }
 }

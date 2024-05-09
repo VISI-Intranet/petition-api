@@ -101,17 +101,17 @@ class PetitionRoute(implicit val petitionRepo:PetitionRepository,
         entity(as[PetitionUpdateRequest]) {
           updatedPetition => {
             val updatedPetitionWithId = petitionRepo.petitionForUpdate(petitionId, updatedPetition)
-            val future = validateCustom(
-              userRepo.doesUserExist(updatedPetitionWithId.autorId)->"Неправильный ID автора!")
-            onComplete(future) {
-              case Success(true,_)=>
+//            val future = validateCustom(
+//              userRepo.doesUserExist(updatedPetitionWithId.autorId)->"Неправильный ID автора!")
+//            onComplete(future) {
+//              case Success(true,_)=>
                 onComplete(petitionRepo.update(petitionId, updatedPetitionWithId)) {
                   case Success(updatedPetitionId) => complete(StatusCodes.OK, updatedPetitionId.toString)
                   case Failure(ex) => complete(StatusCodes.NotFound, s"Ошибка в коде: ${ex.getMessage}")
                 }
-              case Success(false,message) => complete(StatusCodes.BadRequest,message)
-              case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
-            }
+//              case Success(false,message) => complete(StatusCodes.BadRequest,message)
+//              case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
+//            }
           }
         }
       } ~

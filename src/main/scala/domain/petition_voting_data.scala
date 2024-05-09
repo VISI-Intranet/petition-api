@@ -20,9 +20,7 @@ class PetitionVotings(tag: Tag) extends Table[PetitionVoting](tag, "petition_vot
   def petitionId = column[Option[Int]]("petition_id")
   def userId = column[Option[Int]]("user_id")
   def dateVoting = column[Date]("date_voting",O.Default(Date.valueOf(LocalDate.now())))
-
-  def petition = foreignKey("fk_petition",petitionId,TableQuery[Petitions])(_.id)
-
+  
   def * = (id, petitionId, userId, dateVoting).mapTo[PetitionVoting]
 }
 

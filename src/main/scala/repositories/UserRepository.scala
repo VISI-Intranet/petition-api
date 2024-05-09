@@ -4,11 +4,12 @@ import domain.UserStatus.Unblocked
 import slick.jdbc.{GetResult, JdbcProfile}
 import slick.lifted.TableQuery
 import domain.{User, UserStatus, UserTable, UserUpdateRequest}
+import slick.jdbc
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.*
 
-class UserRepository(implicit val db: JdbcProfile#Backend#Database, val ec: ExecutionContext) {
+class UserRepository(implicit val db: jdbc.MySQLProfile.backend.JdbcDatabaseDef, val ec: ExecutionContext) {
 
   import slick.jdbc.MySQLProfile.api._
 

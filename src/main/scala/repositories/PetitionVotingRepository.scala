@@ -3,13 +3,14 @@ package repositories
 import slick.jdbc.{GetResult, JdbcProfile}
 import slick.lifted.TableQuery
 import domain.{PetitionVoting, PetitionVotingCreateRequest, PetitionVotingUpdateRequest, PetitionVotings}
+import slick.jdbc
 
 import java.sql.Date
 import java.time.LocalDate
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.*
 
-class PetitionVotingRepository(implicit db: JdbcProfile#Backend#Database ,val ec: ExecutionContext) {
+class PetitionVotingRepository(implicit db: jdbc.MySQLProfile.backend.JdbcDatabaseDef ,val ec: ExecutionContext) {
 
   import slick.jdbc.MySQLProfile.api._
 

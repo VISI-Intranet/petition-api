@@ -56,7 +56,7 @@ class CommentRoute(implicit
           entity(as[CommentCreateRequest]) {
             newComment => {
               val newValidComment = commentRepo.fromCreateRequest(newComment)
-              val validation = validateCustom (
+/*              val validation = validateCustom (
                 userRepo.doesUserExist(newValidComment.authorId) 
                   -> "Не правильно указали ID пользователья!",
                 petitionRepo.doesPetitionExist(newValidComment.petitionId) 
@@ -67,16 +67,16 @@ class CommentRoute(implicit
                   -> "На эту петицию нельзя оставлять коментарий!"
               )
               onComplete(validation) {
-                case Success(true,_)=>
+                case Success(true,_)=>*/
                   onComplete(commentRepo.create(newValidComment)) {
                     case Success(newCommentId) =>
                       complete(StatusCodes.Created, s"ID нового коментария ${newCommentId.get.toString}")
                     case Failure(_) =>
                       complete(StatusCodes.InternalServerError, "Не удалось создать коментарий!")
                   }
-                case Success(false, message) => complete(StatusCodes.BadRequest, message)
-                case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
-              }
+//                case Success(false, message) => complete(StatusCodes.BadRequest, message)
+//                case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
+//              }
             }
           }
         }
@@ -84,7 +84,7 @@ class CommentRoute(implicit
       path(IntNumber) { commentId =>
         get {
           onComplete(commentRepo.getById(commentId)) {
-            case Success(comment) => complete(StatusCodes.OK, comment)
+            case Success(Some(comment)) => complete(StatusCodes.OK, comment)
             case Success(None) => complete(StatusCodes.BadRequest,s"Коментарий под айди $commentId не существует!")
             case Failure(ex) => complete(StatusCodes.NotFound, s"Ошибка в коде: ${ex.getMessage}")
           }
@@ -93,25 +93,25 @@ class CommentRoute(implicit
           entity(as[CommentUpdateRequest]) {
             updatedComment => {
               val updatedCommentWithId = commentRepo.commentForUpdate(commentId, updatedComment)
-              val validation = validateCustom(
-                userRepo.doesUserExist(updatedCommentWithId.authorId)
-                  ->"Не правильно указали ID пользователья",
-                petitionRepo.doesPetitionExist(updatedCommentWithId.petitionId) 
-                  -> "Не правильно указали ID петиций!",
-                userRepo.checkUserStatus(updatedCommentWithId.authorId) 
-                  -> "Этот пользователь не можеть оставлять коментарий!",
-                petitionRepo.checkPetitionStatus(updatedCommentWithId.petitionId) 
-                  -> "На эту петицию нельзя оставлять коментарий!"
-              )
-              onComplete(validation) {
-                case Success(true,_)=>
+//              val validation = validateCustom(
+//                userRepo.doesUserExist(updatedCommentWithId.authorId)
+//                  ->"Не правильно указали ID пользователья",
+//                petitionRepo.doesPetitionExist(updatedCommentWithId.petitionId) 
+//                  -> "Не правильно указали ID петиций!",
+//                userRepo.checkUserStatus(updatedCommentWithId.authorId) 
+//                  -> "Этот пользователь не можеть оставлять коментарий!",
+//                petitionRepo.checkPetitionStatus(updatedCommentWithId.petitionId) 
+//                  -> "На эту петицию нельзя оставлять коментарий!"
+//              )
+//              onComplete(validation) {
+//                case Success(true,_)=>
                   onComplete(commentRepo.update(commentId, updatedCommentWithId)) {
                     case Success(updatedCommentId) => complete(StatusCodes.OK, updatedCommentId.toString)
                     case Failure(ex) => complete(StatusCodes.NotFound, s"Ошибка в коде: ${ex.getMessage}")
                   }
-                case Success(false, message) => complete(StatusCodes.BadRequest, message)
-                case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
-              }
+//                case Success(false, message) => complete(StatusCodes.BadRequest, message)
+//                case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
+//              }
             }
           }
         } ~

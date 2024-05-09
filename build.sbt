@@ -15,5 +15,18 @@ libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.8.0"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "DB"
+    name := "petition_api"
   )
+
+
+ThisBuild / assemblyMergeStrategy in assembly := {
+  case PathList("google", "protobuf", "any.proto") => MergeStrategy.first
+  case PathList("google", "protobuf", "descriptor.proto") => MergeStrategy.first
+  case PathList("google", "protobuf", "empty.proto") => MergeStrategy.first
+  case PathList("google", "protobuf", "struct.proto") => MergeStrategy.first
+  case PathList("module-info.class") => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
+

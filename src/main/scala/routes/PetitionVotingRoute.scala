@@ -55,31 +55,31 @@ extends JsonSupport {
         entity(as[PetitionVotingCreateRequest]) {
           newPetitionVoting => {
             val newValidPetitionVoting = petitionVotingRepo.fromCreateRequest(newPetitionVoting)
-            val validation = validateCustom(
-              // Проверка на повторное голосование
-              petitionVotingRepo.checkForRevoting(newValidPetitionVoting)
-                -> "Повторное голосование запрещено!",
-              // Проверка на правильность ID пользователя и петиций
-              userRepo.doesUserExist(newValidPetitionVoting.userId)
-                -> "Не правильно указали ID пользователья",
-              petitionRepo.doesPetitionExist(newValidPetitionVoting.petitionId)
-                -> "Не правильно указали ID петиций",
-              // Проверка статуса пользователя
-              userRepo.checkUserStatus(newValidPetitionVoting.userId)
-                -> s"Этот пользователь под ID ${newValidPetitionVoting.userId} не может менять голос!",
-              petitionRepo.checkPetitionStatus(newValidPetitionVoting.petitionId)
-                -> "На эту петицию нельзя голосовать!"
-            )
-             onComplete(validation) {
-               case Success(true,_)=>
+//            val validation = validateCustom(
+//              // Проверка на повторное голосование
+//              petitionVotingRepo.checkForRevoting(newValidPetitionVoting)
+//                -> "Повторное голосование запрещено!",
+//              // Проверка на правильность ID пользователя и петиций
+//              userRepo.doesUserExist(newValidPetitionVoting.userId)
+//                -> "Не правильно указали ID пользователья",
+//              petitionRepo.doesPetitionExist(newValidPetitionVoting.petitionId)
+//                -> "Не правильно указали ID петиций",
+//              // Проверка статуса пользователя
+//              userRepo.checkUserStatus(newValidPetitionVoting.userId)
+//                -> s"Этот пользователь под ID ${newValidPetitionVoting.userId} не может менять голос!",
+//              petitionRepo.checkPetitionStatus(newValidPetitionVoting.petitionId)
+//                -> "На эту петицию нельзя голосовать!"
+//            )
+//             onComplete(validation) {
+//               case Success(true,_)=>
                  onComplete(petitionVotingRepo.create(newValidPetitionVoting)) {
                   case Success(newCommentId) =>
                     complete(StatusCodes.Created, s"ID нового голоса ${newCommentId.get.toString}")
                   case Failure(_) => complete(StatusCodes.InternalServerError, "Не удалось создать голос!")
                  }
-               case Success(false, message) => complete(StatusCodes.BadRequest, message)
-               case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
-            }
+//               case Success(false, message) => complete(StatusCodes.BadRequest, message)
+//               case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
+//            }
           }
         }
       }
@@ -99,52 +99,51 @@ extends JsonSupport {
               petitionVotingRepo.petitionVotingForUpdate(petitionVotingId, updatedPetitionVoting)
             validPetitionVoting match {
               case Some(validPetitionVoting) =>
-                // Проверка на правильность ID пользователя и петиций
-                val validation = validateCustom(
-                  userRepo.doesUserExist(validPetitionVoting.userId)
-                    -> "Не правильно указали ID пользователья!",
-                  petitionRepo.doesPetitionExist(validPetitionVoting.petitionId)
-                    -> "Не правильно указали ID петицию!",
-                  // Проверка статуса пользователя
-                  userRepo.checkUserStatus(validPetitionVoting.userId)
-                    -> s"Этот пользователь под ID ${validPetitionVoting.userId} не может менять голос!",
-                  // Проверка на повторное голосование
-                  petitionVotingRepo.checkForRevoting(validPetitionVoting)
-                    -> "Повторное голосование запрещена!",
-                  petitionRepo.checkPetitionStatus(validPetitionVoting.petitionId)
-                    -> s"На эту петицию под айди ${validPetitionVoting.petitionId.get} нельзя голосовать!",
-                  petitionRepo.checkOldPetitionStatus(Some(petitionVotingId))
-                    -> s"Из петиций под айди $petitionVotingId нельзя убрать голос!"
-                )
-                onComplete(validation) {
-                  case Success(true, _) =>
-                    onComplete(petitionVotingRepo.update(petitionVotingId, validPetitionVoting)) {
-                      case Success(updatedPetitionVotingId) => complete(StatusCodes.OK, updatedPetitionVotingId.toString)
-                      case Failure(ex) => complete(StatusCodes.NotFound, s"${ex.getMessage}")
-                    }
-                  case Success(false, message) => complete(StatusCodes.BadRequest, message)
-                  case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
+//                // Проверка на правильность ID пользователя и петиций
+//                val validation = validateCustom(
+//                  userRepo.doesUserExist(validPetitionVoting.userId)
+//                    -> "Не правильно указали ID пользователья!",
+//                  petitionRepo.doesPetitionExist(validPetitionVoting.petitionId)
+//                    -> "Не правильно указали ID петицию!",
+//                  // Проверка статуса пользователя
+//                  userRepo.checkUserStatus(validPetitionVoting.userId)
+//                    -> s"Этот пользователь под ID ${validPetitionVoting.userId} не может менять голос!",
+//                  // Проверка на повторное голосование
+//                  petitionVotingRepo.checkForRevoting(validPetitionVoting)
+//                    -> "Повторное голосование запрещена!",
+//                  petitionRepo.checkPetitionStatus(validPetitionVoting.petitionId)
+//                    -> s"На эту петицию под айди ${validPetitionVoting.petitionId.get} нельзя голосовать!",
+//                  petitionRepo.checkOldPetitionStatus(Some(petitionVotingId))
+//                    -> s"Из петиций под айди $petitionVotingId нельзя убрать голос!"
+//                )
+//                onComplete(validation) {
+//                  case Success(true, _) =>
+                onComplete(petitionVotingRepo.update(petitionVotingId, validPetitionVoting)) {
+                  case Success(updatedPetitionVotingId) => complete(StatusCodes.OK, updatedPetitionVotingId.toString)
+                  case Failure(ex) => complete(StatusCodes.NotFound, s"${ex.getMessage}")
                 }
+//                  case Success(false, message) => complete(StatusCodes.BadRequest, message)
+//                  case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
               case None => complete(StatusCodes.BadRequest, s"Неправильный айди для изменения $petitionVotingId!")
             }
           }
         }
       } ~
       delete {
-        val validation = validateCustom(
-          petitionRepo.checkOldPetitionStatus(Some(petitionVotingId))
-          -> s"Голос под айди $petitionVotingId нельзя убрать из-за статуса петиций!"
-        )
-        onComplete(validation){
-          case Success(true,_)=>
+//        val validation = validateCustom(
+//          petitionRepo.checkOldPetitionStatus(Some(petitionVotingId))
+//          -> s"Голос под айди $petitionVotingId нельзя убрать из-за статуса петиций!"
+//        )
+//        onComplete(validation){
+//          case Success(true,_)=>
             onComplete(petitionVotingRepo.delete(petitionVotingId)) {
               case Success(deletedPetitionVotingId) =>
                 complete(StatusCodes.OK, s"Число удаленных строк ${deletedPetitionVotingId.toString}")
               case Failure(ex) => complete(StatusCodes.NotFound, s"${ex.getMessage}")
             }
-          case Success(false, message) => complete(StatusCodes.BadRequest, message)
-          case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
-        }
+//          case Success(false, message) => complete(StatusCodes.BadRequest, message)
+//          case Failure(_) => complete(StatusCodes.InternalServerError, "Проверка не выполнилось!")
+//        }
       }
     }
   }

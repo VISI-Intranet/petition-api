@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/DB.iml" filepath="$PROJECT_DIR$/.idea/modules/DB.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/DB-build.iml" filepath="$PROJECT_DIR$/.idea/modules/DB-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/petition_api.iml" filepath="$PROJECT_DIR$/.idea/modules/petition_api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/petition_api.petition_api-build.iml" filepath="$PROJECT_DIR$/.idea/modules/petition_api.petition_api-build.iml" />
     </modules>
   </component>
 </project>
